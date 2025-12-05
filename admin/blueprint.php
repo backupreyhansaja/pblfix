@@ -86,6 +86,8 @@ if (isset($_GET['edit'])) {
 }
 
 include 'includes/header.php';
+$icons = include "../config/icons.php"; 
+$selectedIcon = $editData['icon'] ?? "";
 ?>
 
 <!-- SUCCESS -->
@@ -127,16 +129,45 @@ include 'includes/header.php';
         </div>
 
         <div class="mb-4">
-            <label class="block mb-2 font-semibold text-gray-700">Icon (FontAwesome) *</label>
-            <input type="text" name="icon" required
-                   placeholder="misal: fa-solid fa-brain"
-                   value="<?= htmlspecialchars($editData['icon'] ?? '') ?>"
-                   class="w-full px-4 py-2 border rounded-lg">
+            <label class="font-semibold">Icon *</label>
+            <input type="hidden" name="icon" id="iconInput" value="<?= $selectedIcon ?>">
+            <!-- Dropdown Button -->
+            <button id="dropdownBtn" type="button"
+                    class="w-full flex items-center justify-between p-2 border rounded-lg bg-white">
+                <span id="dropdownLabel" class="flex items-center gap-2">
+                    <?php if ($selectedIcon): ?>
+                        <i class="<?= $selectedIcon ?> text-xl"></i>
+                    <?php endif; ?>
+                    <?= $selectedIcon ?: "Pilih Icon" ?>
+                </span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
+
+            <!-- Dropdown List -->
+            <div id="dropdownMenu" 
+                class="hidden border rounded-lg mt-2 bg-white shadow-lg dropdown-icon-list">
+
+                <?php foreach ($icons as $class => $label): ?>
+                    <div class="flex items-center gap-3 p-2 cursor-pointer hover:bg-gray-100"
+                        onclick="selectIcon('<?= $class ?>')">
+                        <i class="<?= $class ?> text-lg"></i>
+                        <span><?= $label ?> (<?= $class ?>)</span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         </div>
+
+        <!-- Preview -->
+        <div id="iconPreview" class="mt-3 text-4xl">
+            <?php if ($selectedIcon): ?>
+                <i class="<?= $selectedIcon ?>"></i>
+            <?php endif; ?>
+        </div>
+
 
         <div class="mb-4">
             <label class="block mb-2 font-semibold text-gray-700">Warna Card</label>
-            <input type="color" name="color"
+            <input type="color" name="color" id="colorPicker"
                    value="<?= htmlspecialchars($editData['color'] ?? '#6C5CE7') ?>"
                    class="w-20 h-10 border rounded">
         </div>
@@ -157,6 +188,51 @@ include 'includes/header.php';
                 Simpan
             </button>
         </div>
+        <!-- Script preview and select icon -->
+        <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const dropdownBtn   = document.getElementById("dropdownBtn");
+            const dropdownMenu  = document.getElementById("dropdownMenu");
+            const dropdownLabel = document.getElementById("dropdownLabel");
+            const iconInput     = document.getElementById("iconInput");
+            const iconPreview   = document.getElementById("iconPreview");
+            const colorPicker   = document.getElementById("colorPicker");
+
+            function updatePreview() {
+                const icon = iconInput.value || "";
+                const color = colorPicker.value || "#000000";
+
+                if (icon === "") {
+                    iconPreview.innerHTML = "";
+                    return;
+                }
+
+                iconPreview.innerHTML = 
+                    `<i class="${icon}" style="font-size:48px; color:${color};"></i>`;
+            }
+
+            window.selectIcon = function(iconClass) {
+                iconInput.value = iconClass;
+                dropdownLabel.innerHTML = `<i class="${iconClass} text-xl"></i> ${iconClass}`;
+                updatePreview();
+                dropdownMenu.classList.add("hidden");
+            }
+
+            dropdownBtn.addEventListener("click", () => {
+                dropdownMenu.classList.toggle("hidden");
+            });
+
+            colorPicker.addEventListener("input", updatePreview);
+
+            document.addEventListener("click", function(e) {
+                if (!dropdownBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                    dropdownMenu.classList.add("hidden");
+                }
+            });
+
+            updatePreview();
+        });
+        </script>
     </form>
 </div>
 

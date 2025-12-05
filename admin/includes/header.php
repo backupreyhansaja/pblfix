@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
         * {
@@ -37,8 +39,20 @@
             opacity: 1;
             pointer-events: all;
         }
+
+        .dropdown-icon-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .dropdown-icon-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .dropdown-icon-list::-webkit-scrollbar-thumb {
+            background: #bbb;
+            border-radius: 10px;
+        }
     </style>
-</head>
+</head> 
 <body class="bg-gray-100">
     <!-- Mobile Menu Backdrop -->
     <div id="backdrop" class="backdrop fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"></div>
