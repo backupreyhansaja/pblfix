@@ -68,13 +68,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $jabatan = $db->escape($_POST['jabatan']);
     $nama = $db->escape($_POST['nama']);
-    $nip = $db->escape($_POST['nip'] ?? '');
+    $deskripsi = $db->escape($_POST['deskripsi'] ?? '');
     $fotoId = null;
 
     // Get or create dosen record
     $dosenId = null;
-    if ($nip) {
-        $dosenCheck = $db->query("SELECT id FROM dosen WHERE nip = '$nip' LIMIT 1");
+    if ($deskripsi) {
+        $dosenCheck = $db->query("SELECT id FROM dosen WHERE deskripsi = '$deskripsi' LIMIT 1");
         $dosenRow = $db->fetch($dosenCheck);
         if ($dosenRow) {
             $dosenId = $dosenRow['id'];
@@ -82,22 +82,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->query("UPDATE dosen SET nama = '$nama' WHERE id = $dosenId");
         } else {
             // Create new dosen
-            $db->query("INSERT INTO dosen (nip, nama) VALUES ('$nip', '$nama')");
-            $dosenCheck = $db->query("SELECT id FROM dosen WHERE nip = '$nip' LIMIT 1");
+            $db->query("INSERT INTO dosen (deskripsi, nama) VALUES ('$deskripsi', '$nama')");
+            $dosenCheck = $db->query("SELECT id FROM dosen WHERE deskripsi = '$deskripsi' LIMIT 1");
             $dosenRow = $db->fetch($dosenCheck);
             if ($dosenRow) {
                 $dosenId = $dosenRow['id'];
             }
         }
     } else {
-        // If no NIP, check if dosen exists by name
+        // If no Deskripsi, check if dosen exists by name
         $dosenCheck = $db->query("SELECT id FROM dosen WHERE nama = '$nama' LIMIT 1");
         $dosenRow = $db->fetch($dosenCheck);
         if ($dosenRow) {
             $dosenId = $dosenRow['id'];
         } else {
-            // Create new dosen without NIP
-            $db->query("INSERT INTO dosen (nip, nama) VALUES ('', '$nama')");
+            // Create new dosen without Deskripsi
+            $db->query("INSERT INTO dosen (deskripsi, nama) VALUES ('', '$nama')");
             $dosenCheck = $db->query("SELECT id FROM dosen WHERE nama = '$nama' ORDER BY id DESC LIMIT 1");
             $dosenRow = $db->fetch($dosenCheck);
             if ($dosenRow) {
@@ -158,7 +158,7 @@ $result = $db->query("
     SELECT 
         so.*, 
         d.nama, 
-        d.nip,
+        d.deskripsi,
         (f.path || '/' || f.filename) AS foto_path
     FROM struktur_organisasi so
     LEFT JOIN dosen d ON so.id_dosen = d.id
@@ -182,10 +182,10 @@ $editData = null;
 if (isset($_GET['edit'])) {
     $editId = (int)$_GET['edit'];
     $editRes = $db->query("
-        SELECT 
-            so.*, 
-            d.nama, 
-            d.nip,
+            SELECT 
+                so.*, 
+                d.nama, 
+                d.deskripsi,
             (f.path || '/' || f.filename) AS foto_path
         FROM struktur_organisasi so
         LEFT JOIN dosen d ON so.id_dosen = d.id
@@ -259,9 +259,9 @@ include 'includes/header.php';
 
         <div class="grid md:grid-cols-2 gap-4 mb-4">
             <div>
-                <label class="block font-semibold mb-2">NIP (Opsional)</label>
-                <input type="text" name="nip"
-                       value="<?php echo htmlspecialchars($editData['nip'] ?? ''); ?>"
+                  <label class="block font-semibold mb-2">Deskripsi (Opsional)</label>
+                  <input type="text" name="deskripsi"
+                      value="<?php echo htmlspecialchars($editData['deskripsi'] ?? ''); ?>"
                        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-300">
             </div>
         </div>
@@ -297,7 +297,7 @@ include 'includes/header.php';
                 <th class="px-6 py-3 text-left">Foto</th>
                 <th class="px-6 py-3 text-left">Jabatan</th>
                 <th class="px-6 py-3 text-left">Nama</th>
-                <th class="px-6 py-3 text-left">NIP</th>
+                <th class="px-6 py-3 text-left">Deskripsi</th>
                 <th class="px-6 py-3 text-center">Aksi</th>
             </tr>
         </thead>
@@ -318,7 +318,7 @@ include 'includes/header.php';
 
                     <td class="px-6 py-4 font-semibold"><?php echo htmlspecialchars($row['jabatan']); ?></td>
                     <td class="px-6 py-4"><?php echo htmlspecialchars($row['nama']); ?></td>
-                    <td class="px-6 py-4"><?php echo htmlspecialchars($row['nip'] ?: '-'); ?></td>
+                    <td class="px-6 py-4"><?php echo htmlspecialchars($row['deskripsi'] ?: '-'); ?></td>
 
                     <td class="px-6 py-4 text-center">
                         <a href="?edit=<?php echo $row['id']; ?>" class="text-blue-600 mr-3">
@@ -329,6 +329,12 @@ include 'includes/header.php';
                            onclick="return confirm('Hapus data ini?')">
                             <i class="fas fa-trash"></i>
                         </a>
+                        <!-- Link to manage publikasi for this dosen -->
+                        <?php if (!empty($row['id_dosen'])): ?>
+                            <a href="publikasi.php?dosen_id=<?php echo $row['id_dosen']; ?>" class="text-green-600 ml-3" title="Kelola Publikasi">
+                                <i class="fas fa-book"></i>
+                            </a>
+                        <?php endif; ?>
                     </td>
                 </tr>
             <?php endforeach; ?>

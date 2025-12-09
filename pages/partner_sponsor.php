@@ -3,15 +3,31 @@ require_once '../config/database.php';
 $pageTitle = 'Partner & Sponsor';
 $pageInPages = true;
 
-// Fetch data
 $db = new Database();
 
-// Get Partners
-$partnerResult = $db->query("SELECT * FROM partners ORDER BY created_at DESC");
+/* ============================================================
+   FETCH PARTNER (kolaborasi.jenis = 'partner')
+============================================================ */
+$partnerResult = $db->query("
+    SELECT k.id, k.nama_sponsor, f.filename, f.path
+    FROM kolaborasi k
+    LEFT JOIN files f ON k.image_id = f.id
+    WHERE LOWER(k.jenis) = 'partner'
+    ORDER BY k.created_at DESC
+");
 $partners = $db->fetchAll($partnerResult);
 
-// Get Sponsors
-$sponsorResult = $db->query("SELECT * FROM sponsors ORDER BY created_at DESC");
+/* ============================================================
+   FETCH SPONSOR (selain partner)
+   jenis: Internal, Eksternal, Kolaborasi
+============================================================ */
+$sponsorResult = $db->query("
+    SELECT k.*, f.filename, f.path
+    FROM kolaborasi k
+    LEFT JOIN files f ON k.image_id = f.id
+    WHERE LOWER(k.jenis) != 'partner'
+    ORDER BY k.created_at DESC
+");
 $sponsors = $db->fetchAll($sponsorResult);
 
 include '../includes/header.php';
@@ -36,64 +52,27 @@ include '../includes/header.php';
             <div class="w-24 h-1 bg-blue-600 mx-auto mb-4"></div>
             <p class="text-gray-600 max-w-2xl mx-auto">Mitra strategis yang berkolaborasi dalam penelitian dan pengembangan</p>
         </div>
-        
+
         <?php if (!empty($partners)): ?>
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-                <?php foreach ($partners as $partner): ?>
-                    <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center border-2 border-gray-100" data-aos="fade-up">
-                        <?php if (!empty($partner['logo'])): ?>
-                            <img src="../uploads/partners/<?php echo htmlspecialchars($partner['logo']); ?>" 
-                                 alt="<?php echo htmlspecialchars($partner['nama']); ?>"
-                                 class="max-w-full max-h-24 object-contain">
+                <?php foreach ($partners as $p): ?>
+                    <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-center border-2 border-gray-100" data-aos="fade-up">
+                        <?php if ($p['filename']): ?>
+                            <img src="<?='../' . $p['path'] . '/' . $p['filename']?>" 
+                                 class="max-w-full max-h-20 mb-3 object-contain grayscale hover:grayscale-0 transition"
+                                 alt="<?=htmlspecialchars($p['nama_sponsor'])?>">
                         <?php else: ?>
-                            <div class="text-center">
-                                <i class="fas fa-building text-4xl text-blue-600 mb-2"></i>
-                                <p class="text-sm font-semibold text-gray-800"><?php echo htmlspecialchars($partner['nama']); ?></p>
-                            </div>
+                            <i class="fas fa-building text-4xl text-blue-600 mb-2"></i>
                         <?php endif; ?>
+
+                        <p class="text-sm font-semibold text-gray-800">
+                            <?= htmlspecialchars($p['nama_sponsor']) ?>
+                        </p>
                     </div>
                 <?php endforeach; ?>
             </div>
         <?php else: ?>
-            <!-- Default Partners -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center border-2 border-gray-100" data-aos="fade-up">
-                    <div class="text-center">
-                        <i class="fas fa-university text-4xl text-blue-600 mb-2"></i>
-                        <p class="text-sm font-semibold text-gray-800">Universitas Indonesia</p>
-                    </div>
-                </div>
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center border-2 border-gray-100" data-aos="fade-up" data-aos-delay="100">
-                    <div class="text-center">
-                        <i class="fas fa-university text-4xl text-blue-600 mb-2"></i>
-                        <p class="text-sm font-semibold text-gray-800">Institut Teknologi Bandung</p>
-                    </div>
-                </div>
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center border-2 border-gray-100" data-aos="fade-up" data-aos-delay="200">
-                    <div class="text-center">
-                        <i class="fas fa-industry text-4xl text-green-600 mb-2"></i>
-                        <p class="text-sm font-semibold text-gray-800">PT. Teknologi Digital</p>
-                    </div>
-                </div>
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center border-2 border-gray-100" data-aos="fade-up" data-aos-delay="300">
-                    <div class="text-center">
-                        <i class="fas fa-building text-4xl text-purple-600 mb-2"></i>
-                        <p class="text-sm font-semibold text-gray-800">CV. Inovasi Sistem</p>
-                    </div>
-                </div>
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center border-2 border-gray-100" data-aos="fade-up" data-aos-delay="400">
-                    <div class="text-center">
-                        <i class="fas fa-laptop-code text-4xl text-red-600 mb-2"></i>
-                        <p class="text-sm font-semibold text-gray-800">Tech Startup Hub</p>
-                    </div>
-                </div>
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center border-2 border-gray-100" data-aos="fade-up" data-aos-delay="500">
-                    <div class="text-center">
-                        <i class="fas fa-network-wired text-4xl text-indigo-600 mb-2"></i>
-                        <p class="text-sm font-semibold text-gray-800">IoT Solutions Inc</p>
-                    </div>
-                </div>
-            </div>
+            <p class="text-center text-gray-500">Belum ada partner.</p>
         <?php endif; ?>
     </div>
 </section>
@@ -106,93 +85,31 @@ include '../includes/header.php';
             <div class="w-24 h-1 bg-blue-600 mx-auto mb-4"></div>
             <p class="text-gray-600 max-w-2xl mx-auto">Sponsor yang mendukung kegiatan dan pengembangan laboratorium</p>
         </div>
-        
+
         <?php if (!empty($sponsors)): ?>
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
-                <?php foreach ($sponsors as $sponsor): ?>
+                <?php foreach ($sponsors as $s): ?>
                     <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center" data-aos="fade-up">
-                        <?php if (!empty($sponsor['logo'])): ?>
-                            <img src="../uploads/sponsors/<?php echo htmlspecialchars($sponsor['logo']); ?>" 
-                                 alt="<?php echo htmlspecialchars($sponsor['nama']); ?>"
-                                 class="max-w-full max-h-20 object-contain grayscale hover:grayscale-0 transition">
+                        <?php if ($s['filename']): ?>
+                            <img src="<?='../' . $s['path'] . '/' . $s['filename']?>" 
+                                 class="max-w-full max-h-20 object-contain grayscale hover:grayscale-0 transition"
+                                 alt="<?=htmlspecialchars($s['nama_sponsor'])?>">
                         <?php else: ?>
                             <div class="text-center">
                                 <i class="fas fa-gift text-3xl text-yellow-600 mb-2"></i>
-                                <p class="text-xs font-semibold text-gray-800"><?php echo htmlspecialchars($sponsor['nama']); ?></p>
+                                <p class="text-xs font-semibold text-gray-800"><?=htmlspecialchars($s['nama_sponsor'])?></p>
                             </div>
                         <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
             </div>
         <?php else: ?>
-            <!-- Default Sponsors -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center" data-aos="fade-up">
-                    <div class="text-center">
-                        <i class="fas fa-microchip text-3xl text-blue-600 mb-2"></i>
-                        <p class="text-xs font-semibold text-gray-800">Intel Corp</p>
-                    </div>
-                </div>
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center" data-aos="fade-up" data-aos-delay="100">
-                    <div class="text-center">
-                        <i class="fab fa-microsoft text-3xl text-blue-500 mb-2"></i>
-                        <p class="text-xs font-semibold text-gray-800">Microsoft</p>
-                    </div>
-                </div>
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center" data-aos="fade-up" data-aos-delay="200">
-                    <div class="text-center">
-                        <i class="fab fa-google text-3xl text-red-500 mb-2"></i>
-                        <p class="text-xs font-semibold text-gray-800">Google</p>
-                    </div>
-                </div>
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center" data-aos="fade-up" data-aos-delay="300">
-                    <div class="text-center">
-                        <i class="fab fa-aws text-3xl text-orange-500 mb-2"></i>
-                        <p class="text-xs font-semibold text-gray-800">AWS</p>
-                    </div>
-                </div>
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center" data-aos="fade-up" data-aos-delay="400">
-                    <div class="text-center">
-                        <i class="fas fa-server text-3xl text-green-600 mb-2"></i>
-                        <p class="text-xs font-semibold text-gray-800">IBM</p>
-                    </div>
-                </div>
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center" data-aos="fade-up" data-aos-delay="500">
-                    <div class="text-center">
-                        <i class="fab fa-docker text-3xl text-blue-400 mb-2"></i>
-                        <p class="text-xs font-semibold text-gray-800">Docker</p>
-                    </div>
-                </div>
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center" data-aos="fade-up" data-aos-delay="600">
-                    <div class="text-center">
-                        <i class="fas fa-database text-3xl text-purple-600 mb-2"></i>
-                        <p class="text-xs font-semibold text-gray-800">Oracle</p>
-                    </div>
-                </div>
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center" data-aos="fade-up" data-aos-delay="700">
-                    <div class="text-center">
-                        <i class="fab fa-github text-3xl text-gray-800 mb-2"></i>
-                        <p class="text-xs font-semibold text-gray-800">GitHub</p>
-                    </div>
-                </div>
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center" data-aos="fade-up" data-aos-delay="800">
-                    <div class="text-center">
-                        <i class="fas fa-cloud text-3xl text-blue-300 mb-2"></i>
-                        <p class="text-xs font-semibold text-gray-800">Azure</p>
-                    </div>
-                </div>
-                <div class="card-hover bg-white rounded-xl shadow-lg p-6 flex items-center justify-center" data-aos="fade-up" data-aos-delay="900">
-                    <div class="text-center">
-                        <i class="fab fa-node-js text-3xl text-green-500 mb-2"></i>
-                        <p class="text-xs font-semibold text-gray-800">Node Foundation</p>
-                    </div>
-                </div>
-            </div>
+            <p class="text-center text-gray-500">Belum ada sponsor.</p>
         <?php endif; ?>
     </div>
 </section>
 
-<!-- Collaboration Benefits Section -->
+<!-- Collaboration Benefits -->
 <section class="py-20 bg-white">
     <div class="container mx-auto px-6">
         <div class="text-center mb-16" data-aos="fade-up">
@@ -255,4 +172,3 @@ include '../includes/header.php';
 </section>
 
 <?php include '../includes/footer.php'; ?>
-

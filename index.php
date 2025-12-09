@@ -32,7 +32,7 @@ $strukturResult = $db->query("
     SELECT 
         so.*, 
         d.nama, 
-        d.nip,
+        d.deskripsi,
         (f.path || '/' || f.filename) AS foto_path
     FROM struktur_organisasi so
     LEFT JOIN dosen d ON so.id_dosen = d.id

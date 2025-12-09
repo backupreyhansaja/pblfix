@@ -1,4 +1,17 @@
 <!-- Contact Section -->
+<?php
+// Load dynamic contact settings from DB. Use relative path: this file lives in "includes/".
+require_once __DIR__ . '/../config/database.php';
+$db = new Database();
+$settings = [];
+$res = $db->query("SELECT * FROM setting_sosial_media LIMIT 1");
+if ($res) {
+    $settings = $db->fetch($res) ?: [];
+}
+$alamat = $settings['alamat'] ?? 'Jl. Contoh Alamat No.123, Kota, Negara';
+$phone = $settings['no_hp'] ?? '+62 123 456 789';
+$email = $settings['contact_email'] ?? $settings['email'] ?? 'info@lab.ac.id';
+?>
 <section id="contact" class="py-16 bg-gradient-to-br from-gray-900 to-gray-800 text-white">
     <div class="container mx-auto px-4 max-w-6xl">
         <!-- Header -->
@@ -18,7 +31,7 @@
                         </div>
                         <div>
                             <h3 class="font-bold text-lg mb-1 text-blue-200">Alamat</h3>
-                            <p class="text-gray-300">Jl. Kampus No. 123<br>Malang, Indonesia</p>
+                            <p class="text-gray-300"><?php echo($alamat); ?></p>
                         </div>
                     </div>
                 </div>
@@ -30,7 +43,7 @@
                         </div>
                         <div>
                             <h3 class="font-bold text-lg mb-1 text-blue-200">Telepon</h3>
-                            <p class="text-gray-300">+62 123 456 789</p>
+                            <p class="text-gray-300"><?php echo htmlspecialchars($phone); ?></p>
                         </div>
                     </div>
                 </div>
@@ -42,7 +55,7 @@
                         </div>
                         <div>
                             <h3 class="font-bold text-lg mb-1 text-blue-200">Email</h3>
-                            <p class="text-gray-300">info@lab.ac.id</p>
+                            <p class="text-gray-300"><?php echo htmlspecialchars($email); ?></p>
                         </div>
                     </div>
                 </div>

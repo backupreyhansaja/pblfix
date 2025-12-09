@@ -11,7 +11,7 @@ $strukturResult = $db->query("
     SELECT 
         so.*, 
         d.nama, 
-        d.nip,
+        d.deskripsi,
         (f.path || '/' || f.filename) AS foto_path
     FROM struktur_organisasi so
     LEFT JOIN dosen d ON so.id_dosen = d.id
@@ -41,31 +41,38 @@ include '../includes/header.php';
             <div class="max-w-6xl mx-auto">
                 <!-- Organizational Chart -->
                 <div class="space-y-8">
-                    <?php 
+                    <?php
                     $currentLevel = 0;
-                    foreach ($struktur as $index => $person): 
+                    foreach ($struktur as $index => $person):
                         $level = isset($person['level']) ? $person['level'] : $person['urutan'];
                         $isNewLevel = $level != $currentLevel;
                         $currentLevel = $level;
-                    ?>
-                        
+                        ?>
+
                         <?php if ($level == 1): ?>
                             <!-- Top Level (Kepala Lab) -->
                             <div class="flex justify-center" data-aos="fade-up">
-                                <div class="card-hover bg-white rounded-xl shadow-xl p-8 max-w-md w-full border-t-4 border-blue-600">
-                                    <?php if (!empty($person['foto_path'])): ?>
+                                <div
+                                    class="card-hover bg-white rounded-xl shadow-xl p-8 max-w-md w-full border-t-4 border-blue-600">
+                                    <?php
+                                    $fotoPathRaw = $person['foto_path'] ?? '';
+                                    $fotoServerPath = __DIR__ . '/../' . ltrim($fotoPathRaw, '/');
+                                    $fotoWebPath = '../' . ltrim($fotoPathRaw, '/');
+                                    if (!empty($fotoPathRaw) && file_exists($fotoServerPath)): ?>
                                         <div class="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden border-4 border-blue-600">
-                                            <img src="../<?php echo htmlspecialchars($person['foto_path']); ?>" 
-                                                 alt="<?php echo htmlspecialchars($person['nama']); ?>"
-                                                 class="w-full h-full object-cover">
+                                            <img src="<?= htmlspecialchars($fotoWebPath) ?>"
+                                                alt="<?= htmlspecialchars($person['nama']); ?>" class="w-full h-full object-cover">
                                         </div>
                                     <?php else: ?>
-                                        <div class="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center border-4 border-blue-600">
+                                        <div
+                                            class="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center border-4 border-blue-600">
                                             <i class="fas fa-user text-white text-5xl"></i>
                                         </div>
                                     <?php endif; ?>
-                                    <h3 class="text-2xl font-bold text-center mb-2 text-gray-800"><?php echo htmlspecialchars($person['nama']); ?></h3>
-                                    <p class="text-center text-blue-600 font-semibold mb-3"><?php echo htmlspecialchars($person['jabatan']); ?></p>
+                                    <h3 class="text-2xl font-bold text-center mb-2 text-gray-800">
+                                        <?php echo htmlspecialchars($person['nama']); ?></h3>
+                                    <p class="text-center text-blue-600 font-semibold mb-3">
+                                        <?php echo htmlspecialchars($person['jabatan']); ?></p>
                                     <?php if (!empty($person['email'])): ?>
                                         <p class="text-center text-gray-600 text-sm">
                                             <i class="fas fa-envelope mr-2"></i><?php echo htmlspecialchars($person['email']); ?>
@@ -73,7 +80,7 @@ include '../includes/header.php';
                                     <?php endif; ?>
                                 </div>
                             </div>
-                            
+
                             <!-- Connection Line -->
                             <div class="flex justify-center">
                                 <div class="w-1 h-12 bg-blue-300"></div>
@@ -82,36 +89,43 @@ include '../includes/header.php';
                             <?php if ($isNewLevel && $level > 1): ?>
                                 <!-- Start New Level Grid -->
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-aos="fade-up">
-                            <?php endif; ?>
-                            
-                            <!-- Member Card -->
-                            <div class="card-hover bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-600">
-                                <?php if (!empty($person['foto_path'])): ?>
-                                    <div class="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 border-blue-100">
-                                        <img src="../<?php echo htmlspecialchars($person['foto_path']); ?>" 
-                                             alt="<?php echo htmlspecialchars($person['nama']); ?>"
-                                             class="w-full h-full object-cover">
-                                    </div>
-                                <?php else: ?>
-                                    <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-                                        <i class="fas fa-user text-blue-600 text-3xl"></i>
-                                    </div>
                                 <?php endif; ?>
-                                <h3 class="text-xl font-bold text-center mb-2 text-gray-800"><?php echo htmlspecialchars($person['nama']); ?></h3>
-                                <p class="text-center text-blue-600 font-medium mb-2"><?php echo htmlspecialchars($person['jabatan']); ?></p>
-                                <?php if (!empty($person['email'])): ?>
-                                    <p class="text-center text-gray-600 text-sm">
-                                        <i class="fas fa-envelope mr-2"></i><?php echo htmlspecialchars($person['email']); ?>
-                                    </p>
-                                <?php endif; ?>
-                            </div>
-                            
-                            <?php 
-                            // Check if this is the last item or next item has different level
-                            $isLastInLevel = ($index == count($struktur) - 1) || 
-                                           (isset($struktur[$index + 1]) && $struktur[$index + 1]['urutan'] != $level);
-                            if ($isLastInLevel && $level > 1): 
-                            ?>
+
+                                <!-- Member Card -->
+                                <a href="publikasi.php?dosen_id=<?php echo urlencode($person['id_dosen']); ?>"
+                                    class="card-hover block bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-600 hover:no-underline">
+                                    <?php
+                                    $fotoPathRaw = $person['foto_path'] ?? '';
+                                    $fotoServerPath = __DIR__ . '/../' . ltrim($fotoPathRaw, '/');
+                                    $fotoWebPath = '../' . ltrim($fotoPathRaw, '/');
+                                    if (!empty($fotoPathRaw) && file_exists($fotoServerPath)): ?>
+                                        <div class="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-4 border-blue-100">
+                                            <img src="<?= htmlspecialchars($fotoWebPath) ?>"
+                                                alt="<?= htmlspecialchars($person['nama']); ?>" class="w-full h-full object-cover">
+                                        </div>
+                                    <?php else: ?>
+                                        <div
+                                            class="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                                            <i class="fas fa-user text-blue-600 text-3xl"></i>
+                                        </div>
+                                    <?php endif; ?>
+                                    <h3 class="text-xl font-bold text-center mb-2 text-gray-800">
+                                        <?php echo htmlspecialchars($person['nama']); ?></h3>
+                                    <p class="text-center text-blue-600 font-medium mb-2">
+                                        <?php echo htmlspecialchars($person['jabatan']); ?></p>
+                                    <?php if (!empty($person['email'])): ?>
+                                        <p class="text-center text-gray-600 text-sm">
+                                            <i class="fas fa-envelope mr-2"></i><?php echo htmlspecialchars($person['email']); ?>
+                                        </p>
+                                    <?php endif; ?>
+                                </a>
+
+                                <?php
+                                // Check if this is the last item or next item has different level
+                                $isLastInLevel = ($index == count($struktur) - 1) ||
+                                    (isset($struktur[$index + 1]) && $struktur[$index + 1]['urutan'] != $level);
+                                if ($isLastInLevel && $level > 1):
+                                    ?>
                                 </div> <!-- Close grid -->
                             <?php endif; ?>
                         <?php endif; ?>
@@ -137,11 +151,12 @@ include '../includes/header.php';
         <p class="text-blue-100 mb-6 max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="100">
             Kami selalu terbuka untuk peneliti dan mahasiswa yang ingin berkontribusi dalam penelitian dan inovasi
         </p>
-        <a href="../index.php#contact" class="inline-block px-8 py-4 bg-white text-blue-600 rounded-lg font-semibold hover-scale shadow-lg" data-aos="fade-up" data-aos-delay="200">
+        <a href="../index.php#contact"
+            class="inline-block px-8 py-4 bg-white text-blue-600 rounded-lg font-semibold hover-scale shadow-lg"
+            data-aos="fade-up" data-aos-delay="200">
             <i class="fas fa-envelope mr-2"></i>Hubungi Kami
         </a>
     </div>
 </section>
 
 <?php include '../includes/footer.php'; ?>
-

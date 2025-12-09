@@ -6,8 +6,8 @@ $pageInPages = true;
 // Fetch data
 $db = new Database();
 
-// Get Produk
-$produkResult = $db->query("SELECT * FROM produk ORDER BY created_at DESC");
+// Get Produk (only fields we need)
+$produkResult = $db->query("SELECT id, nama, gambar, link, deskripsi FROM produk ORDER BY created_at DESC");
 $produk = $db->fetchAll($produkResult);
 
 include '../includes/header.php';
@@ -31,78 +31,48 @@ include '../includes/header.php';
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <?php foreach ($produk as $item): ?>
                     <div class="card-hover bg-white rounded-xl shadow-lg overflow-hidden" data-aos="fade-up">
-                        <!-- Product Image -->
-                        <div class="relative overflow-hidden group h-64">
+                        <!-- Clickable product area -->
+                        <?php $hasLink = !empty($item['link']); ?>
+                        <?php if ($hasLink): ?>
+                            <a href="<?= htmlspecialchars($item['link']) ?>" target="_blank" class="block group">
+                        <?php else: ?>
+                            <div class="block group">
+                        <?php endif; ?>
+
+                        <div class="relative overflow-hidden h-56 flex items-center justify-center bg-gray-100">
                             <?php if (!empty($item['gambar'])): ?>
-                                <img src="../uploads/produk/<?php echo htmlspecialchars($item['gambar']); ?>" 
-                                     alt="<?php echo htmlspecialchars($item['nama']); ?>"
-                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                <img src="../uploads/produk/<?= htmlspecialchars($item['gambar']) ?>" 
+                                     alt="<?= htmlspecialchars($item['nama']) ?>"
+                                     class="max-h-48 object-contain transition-transform duration-300 group-hover:scale-105">
                             <?php else: ?>
                                 <div class="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
                                     <i class="fas fa-box-open text-white text-6xl opacity-50"></i>
                                 </div>
                             <?php endif; ?>
-                            
-                            <!-- Category Badge -->
-                            <?php if (!empty($item['kategori'])): ?>
-                                <div class="absolute top-4 right-4">
-                                    <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                                        <?php echo htmlspecialchars($item['kategori']); ?>
-                                    </span>
+                        </div>
+
+                        <div class="p-4">
+                            <h3 class="text-lg font-bold mb-2 text-gray-800">
+                                <?= $hasLink ? '<span class="underline">' . htmlspecialchars($item['nama']) . '</span>' : htmlspecialchars($item['nama']) ?>
+                            </h3>
+                            <?php if (!empty($item['deskripsi'])): ?>
+                                <p class="text-gray-600 text-sm mb-2 line-clamp-3"><?= htmlspecialchars($item['deskripsi']) ?></p>
+                            <?php endif; ?>
+                            <?php if ($hasLink): ?>
+                                <div class="mt-2">
+                                    <a href="<?= htmlspecialchars($item['link']) ?>" target="_blank" class="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                        <i class="fas fa-external-link-alt mr-2"></i>Buka Produk
+                                    </a>
                                 </div>
                             <?php endif; ?>
                         </div>
-                        
-                        <!-- Product Info -->
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold mb-3 text-gray-800"><?php echo htmlspecialchars($item['nama']); ?></h3>
-                            <p class="text-gray-600 text-sm mb-4 line-clamp-3"><?php echo htmlspecialchars($item['deskripsi']); ?></p>
-                            
-                            <!-- Features/Technologies -->
-                            <?php if (!empty($item['teknologi'])): ?>
-                                <div class="mb-4">
-                                    <div class="flex flex-wrap gap-2">
-                                        <?php 
-                                        $technologies = explode(',', $item['teknologi']);
-                                        foreach ($technologies as $tech): 
-                                        ?>
-                                            <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                                                <?php echo htmlspecialchars(trim($tech)); ?>
-                                            </span>
-                                        <?php endforeach; ?>
-                                    </div>
-                                </div>
-                            <?php endif; ?>
-                            
-                            <!-- Status -->
-                            <?php if (!empty($item['status'])): ?>
-                                <div class="mb-4">
-                                    <?php if ($item['status'] == 'completed'): ?>
-                                        <span class="inline-flex items-center text-green-600 text-sm">
-                                            <i class="fas fa-check-circle mr-2"></i>Completed
-                                        </span>
-                                    <?php elseif ($item['status'] == 'ongoing'): ?>
-                                        <span class="inline-flex items-center text-blue-600 text-sm">
-                                            <i class="fas fa-sync-alt mr-2"></i>Ongoing
-                                        </span>
-                                    <?php else: ?>
-                                        <span class="inline-flex items-center text-yellow-600 text-sm">
-                                            <i class="fas fa-clock mr-2"></i>Planning
-                                        </span>
-                                    <?php endif; ?>
-                                </div>
-                            <?php endif; ?>
-                            
-                            <!-- Link -->
-                            <?php if (!empty($item['link'])): ?>
-                                <a href="<?php echo htmlspecialchars($item['link']); ?>" 
-                                   target="_blank"
-                                   class="inline-block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                                    <i class="fas fa-external-link-alt mr-2"></i>Lihat Produk
-                                </a>
-                            <?php endif; ?>
-                        </div>
-                    </div>
+
+                        <?php if ($hasLink): ?>
+                            </a>
+                        <?php else: ?>
+                            </div>
+                        <?php endif; ?>
+
                 <?php endforeach; ?>
             </div>
         <?php else: ?>

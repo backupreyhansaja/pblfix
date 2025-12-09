@@ -84,7 +84,7 @@ CREATE TABLE public.sponsors (
 -- Table DOSEN (Parent)
 CREATE TABLE public.dosen (
     id SERIAL PRIMARY KEY,
-    nip VARCHAR(50) NOT NULL UNIQUE,
+    deskripsi TEXT,
     nama VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -104,6 +104,16 @@ CREATE TABLE public.publikasi (
 
     CONSTRAINT fk_publikasi_dosen 
         FOREIGN KEY (id_dosen) REFERENCES dosen(id) ON DELETE CASCADE
+);
+
+-- Table for storing replies sent by admin to contact messages
+CREATE TABLE public.contact_replies (
+    id SERIAL PRIMARY KEY,
+    contact_id INT, -- references contact_messages.id
+    to_email VARCHAR(255) NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    body TEXT NOT NULL,
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Table STRUKTUR ORGANISASI
@@ -207,3 +217,21 @@ CREATE INDEX idx_gallery_image ON gallery(image_id);
 CREATE INDEX idx_blueprint_icon ON blueprint(icon_id);
 CREATE INDEX idx_scope_icon ON scope(icon_id);
 CREATE INDEX idx_struktur_foto ON struktur_organisasi(foto_id);
+
+-- ==========================================
+-- TABLE PRODUK (Produk / Hasil Penelitian)
+-- ==========================================
+CREATE TABLE public.produk (
+    id SERIAL PRIMARY KEY,
+    nama VARCHAR(255) NOT NULL,
+    deskripsi TEXT,
+    kategori VARCHAR(100),
+    teknologi VARCHAR(255),
+    status VARCHAR(50), -- 'completed', 'ongoing', 'planning'
+    gambar VARCHAR(255), -- file name saved under /uploads/produk/
+    link VARCHAR(500), -- optional external link to product
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_produk_nama ON produk(nama);
